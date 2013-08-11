@@ -8,6 +8,7 @@ class Trie {
 public:
     Trie();
     ~Trie();
+    void clear();
     void put(std::string key, Value val);
     Value* get(std::string key);
 private:
@@ -19,6 +20,7 @@ private:
             }
         }
         ~Node(){
+            delete val_;
             delete[] next_;
         }
         Value* val_ = nullptr;
@@ -41,6 +43,12 @@ Trie<value>::~Trie(){
 }
 
 template <class value>
+void Trie<value>::clear(){
+    clear(root_);
+    root_ = nullptr;
+}
+
+template <class value>
 void Trie<value>::clear(Node* root){
     if(!root){
         return;
@@ -58,7 +66,6 @@ template <class Value>
 Value* Trie<Value>::get(std::string key){
     auto result = get(root_, key, 0);
     if (result){
-        std::cout << "Result non-null" << std::endl;
         return result->val_;
     }
     return nullptr;
@@ -86,7 +93,11 @@ typename Trie<Value>::Node* Trie<Value>::put(Node* root, std::string key, Value 
         root = new Node(radix_);
     }
     if (d == key.size()){
-        root->val_ = new Value(val);
+        if (!root->val_){
+            root->val_ = new Value(val);
+        } else {
+            *(root->val_) = val;
+        }
     }
     else {
         root->next_[key[d]] = put(root->next_[key[d]], key, val, d+1);

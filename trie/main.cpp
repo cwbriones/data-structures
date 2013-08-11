@@ -1,7 +1,8 @@
 #include "Trie.h"
 #include <iostream>
 
-void print_result(int* result){
+template <class T>
+void print_result(T* result){
     if (result){
         std::cout << "Item: '" << *result << "' found in container." << std::endl;
     } else {
@@ -11,11 +12,12 @@ void print_result(int* result){
 
 int main(int argc, const char *argv[])
 {
-    Trie<int> trie;
-    trie.put("She", 3);
-    trie.put("Shells", -10);
+    Trie<float> trie;
+    trie.put("She", 1.5f);
+    trie.put("Shells", -10.1f);
     print_result(trie.get("She"));
     print_result(trie.get("Shells"));
     print_result(trie.get("Sells"));
+    trie.clear();
     return 0;
 }

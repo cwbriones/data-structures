@@ -2,6 +2,7 @@
 #define RBTREE_H
 
 #include <iostream>
+#include <initializer_list>
 #include <list>
 
 static const bool BLACK = false;
@@ -26,16 +27,21 @@ template <class Key, class Value>
 class RBTree {
 public:
     RBTree();
+    RBTree(std::initializer_list<Pair<Key,Value> > list);
     ~RBTree();
+    class Iterator;
 
     void put(Key key, Value val);
-    Value* get(Key key);
+    Iterator get(Key key);
+
     void clear();
 
-    Key min();
-    Key max();
+    Iterator floor(Key key);
+    Iterator ceiling(Key key);
 
-    class Iterator;
+    Iterator min();
+    Iterator max();
+
     Iterator begin();
     Iterator end();
 private:
@@ -84,18 +90,17 @@ public:
             }
         }
     }
-
     Iterator(RBTree<Key, Value>& tree, Node* iter) : tree_(tree) {
         if (!iter){
             return;
         }
         iter_ = tree.root_;
         while (iter_ != iter){
-            if (iter_->key < iter->key){
+            if (iter_->key > iter->key){
                 visit_stack.push_back(iter_);
                 iter_ = iter_->left;
             }
-            else if (iter_->key > iter->key){
+            else if (iter_->key < iter->key){
                 iter_ = iter_->right;
             }
         }
@@ -104,11 +109,11 @@ public:
     Iterator(RBTree<Key, Value>& tree, Key key) : tree_(tree) {
         iter_ = tree.root_;
         while (iter_ && iter_->key != key){
-            if (iter_->key < key){
+            if (iter_->key > key){
                 visit_stack.push_back(iter_);
                 iter_ = iter_->left;
             }
-            else if (iter_->key > key){
+            else if (iter_->key < key){
                 iter_ = iter_->right;
             }
         }
@@ -163,17 +168,62 @@ template <class Key, class Value>
 RBTree<Key, Value>::RBTree(){}
 
 template <class Key, class Value>
+RBTree<Key, Value>::RBTree(std::initializer_list<Pair<Key,Value> > list){
+    for (auto& x : list){
+        put(x.first, x.second);
+    }
+}
+
+template <class Key, class Value>
 RBTree<Key, Value>::~RBTree(){
     clear();
 }
 
 template <class Key, class Value>
-Key RBTree<Key, Value>::min(){
-    
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::floor(Key key){
+    Node* item = get(root_, key);
+    if (item){
+        return Iterator(*this, max(item->left));
+    }
+    return end();
 }
 
 template <class Key, class Value>
-Key RBTree<Key, Value>::max(){
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::ceiling(Key key){
+    Node* item = get(root_, key);
+    if (item){
+        return Iterator(*this, min(item->right));
+    }
+    return end();
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::min(){
+    return Iterator(*this);
+}
+
+template <class Key, class Value>
+typename RBTree<Key,Value>::Iterator RBTree<Key, Value>::max(){
+    auto max_n = max(root_);
+
+    return Iterator(*this, max_n);
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Node* RBTree<Key, Value>::min(Node* root){
+    if (root->left){
+        return min(root->left);
+    } else {
+        return root;
+    }
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Node* RBTree<Key, Value>::max(Node* root){
+    while (root->right){
+        root = root->right;
+    }
+    return root;
 }
 
 template <class Key, class Value>
@@ -190,7 +240,6 @@ void RBTree<Key, Value>::clear_tree(Node* root){
         clear_tree(root->left);
         clear_tree(root->right);
     }
-    std::cout << "Deleting node: (" << root->key << ", " << root->val << ")" << std::endl;
     delete root;
 
     return;
@@ -207,8 +256,8 @@ typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::end(){
 }
 
 template <class Key, class Value>
-Value* RBTree<Key, Value>::get(Key key){
-    return get(root_, key);
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::get(Key key){
+    return Iterator(*this, key);
 }
 
 template <class Key, class Value>
