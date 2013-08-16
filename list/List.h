@@ -16,6 +16,7 @@ public:
     List(){};
     ~List(){};
 
+    void reverse();
     void append(T item);
     void prepend(T item);
 
@@ -59,6 +60,23 @@ private:
     Node<T>* tail_ = nullptr;
     size_t size_ = 0;
 };
+
+template <class T>
+void swap(T& a, T& b){
+    T tmp = a;
+    a = b;
+    b = tmp;
+}
+
+template <class T>
+void List<T>::reverse(){
+    Node<T>* node = head_;
+    while (node){
+        swap(node->next, node->prev);
+        node = node->prev;
+    }
+    swap(head_, tail_);
+}
 
 template <class T>
 void List<T>::prepend(T item){

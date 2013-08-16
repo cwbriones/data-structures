@@ -8,6 +8,7 @@ int main(int argc, const char *argv[])
     for (int i = 1; i <= 10; i++){
         list.append(i);
     }
+    list.reverse();
 
     for (auto x : list){
         std::cout << x << std::endl;
