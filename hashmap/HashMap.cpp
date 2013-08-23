@@ -7,7 +7,9 @@ int main(int argc, const char *argv[])
 {
     HashMap<std::string, int> map;
     map.put("Doggy", 15);
-    std::cout << map.contains("Doggy") << std::endl;
+    if (map.contains("Doggy")){
+        std::cout << map.get("Doggy") << std::endl;
+    }
 
     return 0;
 }

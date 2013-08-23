@@ -1,6 +1,9 @@
 #ifndef HASH_H_
 #define HASH_H_
 
+#include <stddef.h>
+#include <string>
+
 template <typename Key>
 struct Hash {
     Hash(){};

@@ -1,14 +1,20 @@
 #include "Heap.h"
+#include "PriorityQueue.h"
+
 #include <iostream>
+#include <string>
 
 int main(int argc, const char *argv[])
 {
-    int nums[] = {19, 36, 3, 100, 17, 1};
-    heap_sort(nums, 6);
+    PriorityQueue<std::string> queue;
+    queue.enqueue("Dog", 11);
+    queue.enqueue("Cat", 5);
+    queue.enqueue("Parrot", 12);
+    queue.enqueue("Monkey", 1);
 
-    for (auto x : nums){
-        std::cout << x << " ";
+    while (!queue.is_empty()){
+        std::cout << queue.dequeue() << std::endl;
     }
-    std::cout  << std::endl;
+
     return 0;
 }

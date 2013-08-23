@@ -15,17 +15,17 @@ void swap(T& a, T& b){
     b = tmp;
 }
 
-// Max heap
+// Min heap
 template <class Value>
-class MaxHeap {
+class MinHeap {
 public:
-    MaxHeap();
-    MaxHeap(Value* items, size_t size);
-    ~MaxHeap();
+    MinHeap();
+    MinHeap(Value* items, size_t size);
+    ~MinHeap();
     void insert(Value value);
 
-    Value max() const;
-    Value pop_max();
+    Value min() const;
+    Value pop_min();
 
     size_t size() const;
 private:
@@ -46,12 +46,12 @@ private:
 };
 
 template <class Value>
-MaxHeap<Value>::MaxHeap(){
+MinHeap<Value>::MinHeap(){
     data = new Value[GROWTH_FACTOR];
 }
 
 template <class Value>
-MaxHeap<Value>::MaxHeap(Value* items, size_t size){
+MinHeap<Value>::MinHeap(Value* items, size_t size){
     while (data_size < size){
         data_size *= GROWTH_FACTOR;
     }
@@ -62,43 +62,43 @@ MaxHeap<Value>::MaxHeap(Value* items, size_t size){
 }
 
 template <class Value>
-inline size_t MaxHeap<Value>::parent(size_t i){
+inline size_t MinHeap<Value>::parent(size_t i){
     if (i == 0){
-        return MaxHeap<Value>::npos;
+        return MinHeap<Value>::npos;
     }
     return (i - 1)/2;
 }
 
 template <class Value>
-inline size_t MaxHeap<Value>::left(size_t i){
+inline size_t MinHeap<Value>::left(size_t i){
     int j = 2*i + 1;
     if (j >= size_){
-        return MaxHeap<Value>::npos;
+        return MinHeap<Value>::npos;
     }
     return j;
 }
 
 template <class Value>
-inline size_t MaxHeap<Value>::right(size_t i){
+inline size_t MinHeap<Value>::right(size_t i){
     int j = 2*i + 2;
     if (j >= size_){
-        return MaxHeap<Value>::npos;
+        return MinHeap<Value>::npos;
     }
     return j;
 }
 
 template <class Value>
-MaxHeap<Value>::~MaxHeap(){
+MinHeap<Value>::~MinHeap(){
     delete[] data;
 }
 
 template <class Value>
-size_t MaxHeap<Value>::size() const {
+size_t MinHeap<Value>::size() const {
     return size_;
 }
 
 template <class Value>
-void MaxHeap<Value>::insert(Value value){
+void MinHeap<Value>::insert(Value value){
     if (++size_ > data_size){
         grow();
     }
@@ -107,7 +107,7 @@ void MaxHeap<Value>::insert(Value value){
 }
 
 template <class Value>
-void MaxHeap<Value>::grow(){
+void MinHeap<Value>::grow(){
     Value* new_data = new Value[data_size * GROWTH_FACTOR];
     for (int i = 0; i < data_size; i++){
         new_data[i] = data[i];
@@ -118,7 +118,7 @@ void MaxHeap<Value>::grow(){
 }
 
 template <class Value>
-void MaxHeap<Value>::shrink(){
+void MinHeap<Value>::shrink(){
     if (data_size == GROWTH_FACTOR){
         return;
     }
@@ -132,12 +132,12 @@ void MaxHeap<Value>::shrink(){
 }
 
 template <class Value>
-Value MaxHeap<Value>::max() const {
+Value MinHeap<Value>::min() const {
     return data[0];
 }
 
 template <class Value>
-Value MaxHeap<Value>::pop_max(){
+Value MinHeap<Value>::pop_min(){
     Value val = data[0];
     size_--;
     data[0] = data[size_];
@@ -149,17 +149,17 @@ Value MaxHeap<Value>::pop_max(){
 }
 
 template <class Value>
-void MaxHeap<Value>::sift_up(){
+void MinHeap<Value>::sift_up(){
     // Check if heap property is broken
     size_t node = size_ - 1;
-    while (node != 0 && data[node] > data[parent(node)]){
+    while (node != 0 && data[node] < data[parent(node)]){
         swap(data[node], data[parent(node)]);
         node = parent(node);
     }
 }
 
 template <class Value>
-void MaxHeap<Value>::sift_down(){
+void MinHeap<Value>::sift_down(){
     // Check if heap property is broken
     // Iterative method makes it somewhat messy.
     size_t node = 0;
@@ -169,7 +169,7 @@ void MaxHeap<Value>::sift_down(){
             break;
         }
         else if (right(node) < 0 && left(node) < size_){
-            if (data[node] < data[left(node)]){
+            if (data[node] > data[left(node)]){
                 swap(data[node], data[left(node)]);
                 node = left(node);
             } else {
@@ -177,7 +177,7 @@ void MaxHeap<Value>::sift_down(){
             }
         }
         else if (left(node) < 0 && right(node) < size_){
-            if (data[node] < data[right(node)]){
+            if (data[node] > data[right(node)]){
                 swap(data[node], data[right(node)]);
                 node = right(node);
             } else {
@@ -185,9 +185,9 @@ void MaxHeap<Value>::sift_down(){
             }
         }
         else {
-            size_t child = data[left(node)] > data[right(node)] 
+            size_t child = data[left(node)] < data[right(node)] 
                 ? left(node) : right(node);
-            if (data[node] < data[child]){
+            if (data[node] > data[child]){
                 swap(data[node], data[child]);
                 node = child;
             } else {
@@ -199,9 +199,9 @@ void MaxHeap<Value>::sift_down(){
 
 template <class T>
 void heap_sort(T* items, size_t size){
-    MaxHeap<T> heap(items, size);
+    MinHeap<T> heap(items, size);
     for (int i = 0; i < size; i++){
-        items[size - i - 1] = heap.pop_max();
+        items[i] = heap.pop_min();
     }
 }
 
