@@ -1,7 +1,30 @@
+/*
+ * Copyright (C) 2013 Christian Briones
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included 
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 #ifndef HASH_MAP_H_
 #define HASH_MAP_H_
 
 #include <vector>
+#include <iostream>
 #include <string>
 #include <functional>
 
@@ -10,6 +33,8 @@
 // Useful struct for iteration, mirrors std::pair
 template <class Key, class Value>
 struct Pair {
+    Pair(){}
+    Pair(Key key, Value value) : first(key), second(value) {}
     Key first;
     Value second;
 };
@@ -44,8 +69,14 @@ public:
     Value& operator[](const Key& key){
         return get(key);
     }
+    size_t size() const;
+
+    // template <class K, class V>
+    // friend std::ostream& operator<<(std::ostream& os, HashMap<K,V>& map);
 
     class Iterator;
+    Iterator begin() const;
+    Iterator end() const;
 private:
     int size_ = 0; // Number of key-value pairs
     int tableSize_ = 41; // size of linear-probing table
@@ -56,6 +87,20 @@ private:
     Hash<Key> hashcode;
     std::vector< Pair<Key, Value>* > items_;
 };
+
+// template <class Key, class Value>
+// std::ostream& operator<<(std::ostream& os, HashMap<Key, Value>& map){
+//     os << "{ ";
+//     int i = 0;
+//     for (auto iter = map.begin(); iter != map.end(); iter++, i++){
+//        os << (*iter).first << ": " << (*iter).second;
+//        if (i < map.size_){
+//            os << ", ";
+//        }
+//     }
+//     os << "}";
+//     return os;
+// }
 
 template <class Key, class Value>
 HashMap<Key, Value>::HashMap() : items_(tableSize_, nullptr) {}
@@ -112,6 +157,7 @@ Value& HashMap<Key, Value>::get(const Key& key){
     // to the value.
     items_[i] = new Pair<Key, Value>();
     items_[i]->first = key;
+    size_++;
 
     return items_[i]->second;
 }
@@ -127,6 +173,11 @@ bool HashMap<Key, Value>::contains(const Key& key) const {
         }
     }
     return false;
+}
+
+template <class Key, class Value>
+inline size_t HashMap<Key, Value>::size() const {
+    return size_;
 }
 
 /** 
@@ -159,34 +210,76 @@ void HashMap<Key, Value>::resize(int newSize){
 };
 
 template <class Key, class Value>
+typename HashMap<Key, Value>::Iterator HashMap<Key, Value>::begin() const {
+    return Iterator(this, 0);
+}
+
+template <class Key, class Value>
+typename HashMap<Key, Value>::Iterator HashMap<Key, Value>::end() const {
+    Iterator iter(this, tableSize_);
+
+    return iter;
+}
+
+/**
+ * An iterator class for accessing the elements
+ * of the HashMap in no particular order.
+ *
+ * It is the responsibility of the client to no longer use an iterator
+ * after the map has been altered or destroyed.
+ *
+ * Dereferencing an iterator that points to the end of the container
+ * results in undefined behaivour.
+ */
+template <class Key, class Value>
 class HashMap<Key, Value>::Iterator {
 public:
-    Iterator(HashMap<Key, Value>* map) : map_(map), items_(map_.tableSize_) {
-        for (int i = 0; i < map->tableSize_; i++){
-            if (map->keys_[i]){
-                items_.push_back({ map->keys_[i], map->values_[i] });
+    Iterator(const HashMap<Key, Value>* map, int counter) : map_(map), counter_(counter) {
+        if (map_->size_ > 0){
+            // Find the first non-null element in the table
+            while (!map_->items_[counter_]){
+                counter_++;
             }
         }
     }
+
     Iterator& operator++(){
-        counter++;
+        increment();
         return *this;
     }
     Iterator operator++(int){
         Iterator old(*this);
-        counter++;
+        increment();
         return old;
     }
     bool operator==(const Iterator& other){
-        return other.map_ == map_ && other.counter == counter;
+        return other.map_ == map_ && other.counter_ == counter_;
     }
-    Pair<Key, Value&> operator*(){
-        return Pair<Key, Value&>( *(items_[counter].first), items_[counter].second );
+    bool operator!=(const Iterator& other){
+        return other.map_ != map_ || other.counter_ != counter_;
+    }
+    Pair<const Key&, Value&> operator*(){
+        auto iter = map_->items_[counter_];
+        return Pair<const Key&, Value&>(iter->first, iter->second);
     }
 private:
-    HashMap<Key, Value>* map_;
-    std::vector<Pair<Key*, Value*>> items_;
-    size_t counter = 0;
+    const HashMap<Key, Value>* map_;
+    size_t counter_ = 0;
+
+    /** 
+     * Guarantees the counter moves at least once,
+     * then continues until we have a non-null element
+     * or reach the end.
+     */
+    void increment(){
+        counter_++;
+        while (counter_ < map_->tableSize_ && !map_->items_[counter_]){
+            counter_++;
+        }
+        if (counter_ > map_->tableSize_){
+            counter_ = map_->tableSize_;
+        }
+    }
 };
 
 #endif // HASH_MAP_H_
