@@ -10,15 +10,23 @@
 // Useful struct for iteration, mirrors std::pair
 template <class Key, class Value>
 struct Pair {
+    Pair(const Key& key, const Value& value) :
+        first(key), second(value) {}
     Key first;
     Value second;
 };
+
+// Simplifies object creation with the use of auto
+template <class Key, class Value>
+Pair<Key, Value> create_pair(const Key& key, const Value& value){
+    return Pair<Key, Value>(key, value);
+}
 
 // Hash Table implemented with linear probing
 template <typename Key, typename Value>
 class HashMap {
 public:
-    HashMap() : keys_(tableSize_, nullptr), values_(tableSize_, nullptr) {};
+    HashMap();
     ~HashMap();
 
     void put(const Key& key, const Value& value);
@@ -43,16 +51,17 @@ private:
     void resize(int newSize);
     
     Hash<Key> hashcode;
-    std::vector<Key*> keys_;
-    std::vector<Value*> values_;
+    std::vector< Pair<Key, Value>* > items_;
 };
+
+template <class Key, class Value>
+HashMap<Key, Value>::HashMap() : items_(tableSize_, nullptr) {}
 
 template <class Key, class Value>
 HashMap<Key, Value>::~HashMap(){
     for (int i = 0; i < tableSize_; i++){
-        if (keys_[i]){
-            delete keys_[i];
-            delete values_[i];
+        if (items_[i]){
+            delete items_[i];
         }
     }
 }
@@ -68,22 +77,22 @@ void HashMap<Key, Value>::put(const Key& key, const Value& value){
     // Compute starting point of probe
     int i = hashcode(key) % tableSize_;
     // Probe for empty slot
-    for(; keys_[i]; i = (i + 1) % tableSize_){
-        if (*(keys_[i]) == key){
-            *values_[i] = Value(value);
+    for(; items_[i]; i = (i + 1) % tableSize_){
+        if (items_[i]->first == key){
+            items_[i]->second = value;
             return;
         }
     }
-    keys_[i] = new Key(key);
-    values_[i] = new Value(value);
+    // Otherwise empty slot
+    items_[i] = new Pair<Key, Value>(key, value);
     size_++;
 }
 
 template <class Key, class Value>
 Value* HashMap<Key, Value>::get(const Key& key){
-    for(int i = hashcode(key) % tableSize_; keys_[i]; i = (i + 1) % tableSize_){
-        if (*(keys_[i]) == key){
-            return values_[i];
+    for(int i = hashcode(key) % tableSize_; items_[i]; i = (i + 1) % tableSize_){
+        if (items_[i]->first == key){
+            return &items_[i]->second;
         }
     }
     return nullptr;
@@ -91,8 +100,8 @@ Value* HashMap<Key, Value>::get(const Key& key){
 
 template <class Key, class Value>
 bool HashMap<Key, Value>::contains(const Key& key) const {
-    for(int i = hashcode(key) % tableSize_; keys_[i]; i = (i + 1) % tableSize_){
-        if (*keys_[i] == key){
+    for(int i = hashcode(key) % tableSize_; items_[i]; i = (i + 1) % tableSize_){
+        if (items_[i]->first == key){
             return true;
         }
     }
@@ -101,27 +110,27 @@ bool HashMap<Key, Value>::contains(const Key& key) const {
 
 template <class Key, class Value>
 void HashMap<Key, Value>::resize(int newSize){
-    std::vector<Key*> old_keys = keys_;
-    std::vector<Value*> old_vals = values_;
+    // std::vector<Key*> old_keys = keys_;
+    // std::vector<Value*> old_vals = values_;
 
-    // Reset
-    keys_.clear();
-    values_.clear();
-    keys_.resize(newSize);
-    values_.resize(newSize);
-    for (int i = 0; i < newSize; i++){
-        keys_[i] = nullptr;
-        values_[i] = nullptr;
-    }
+    // // Reset
+    // keys_.clear();
+    // values_.clear();
+    // keys_.resize(newSize);
+    // values_.resize(newSize);
+    // for (int i = 0; i < newSize; i++){
+    //     keys_[i] = nullptr;
+    //     values_[i] = nullptr;
+    // }
 
-    // Rehash
-    // TODO: this is a memory leak, the values in old_keys and
-    // old_vals are never freed
-    for (int i = 0; i < newSize; i++){
-        if (old_keys[i]){
-            put( *old_keys[i], *old_vals[i] );
-        }
-    }
+    // // Rehash
+    // // TODO: this is a memory leak, the values in old_keys and
+    // // old_vals are never freed
+    // for (int i = 0; i < newSize; i++){
+    //     if (old_keys[i]){
+    //         put( *old_keys[i], *old_vals[i] );
+    //     }
+    // }
 };
 
 template <class Key, class Value>
