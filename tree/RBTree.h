@@ -56,14 +56,14 @@ public:
     ~RBTree();
     class Iterator;
 
-    void put(Key key, Value val);
-    Iterator get(Key key);
+    void put(const Key& key, const Value& val);
+    Iterator get(const Key& key);
     bool contains(const Key& key) const;
 
     void clear();
 
-    Iterator floor(Key key);
-    Iterator ceiling(Key key);
+    Iterator floor(const Key& key);
+    Iterator ceiling(const Key& key);
 
     Iterator min();
     Iterator max();
@@ -74,8 +74,8 @@ private:
     struct Node;
 
     Node* root_ = nullptr;
-    Node* put(Node* root, Key key, Value val);
-    Value* get(Node* root, Key key);
+    Node* put(Node* root, const Key& key, const Value& val);
+    Value* get(Node* root, const Key& key);
 
     int size(Node* node);
     bool is_red(Node* node);
@@ -118,7 +118,7 @@ RBTree<Key, Value>::~RBTree(){
 }
 
 template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::floor(Key key){
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::floor(const Key& key){
     Node* item = get(root_, key);
     if (item){
         return Iterator(*this, max(item->left));
@@ -127,7 +127,7 @@ typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::floor(Key key){
 }
 
 template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::ceiling(Key key){
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::ceiling(const Key& key){
     Node* item = get(root_, key);
     if (item){
         return Iterator(*this, min(item->right));
@@ -208,7 +208,7 @@ typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::end(){
  * if it already isn't in the tree, returning a reference.
  */
 template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::get(Key key){
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::get(const Key& key){
     return Iterator(*this, key);
 }
 
@@ -217,7 +217,7 @@ typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::get(Key key){
  * Returns a pointer to the value if it is found, otherwise nullptr.
  */
 template <class Key, class Value>
-Value* RBTree<Key, Value>::get(Node* root, Key key){
+Value* RBTree<Key, Value>::get(Node* root, const Key& key){
     if (!root){
         return nullptr;
     }
@@ -237,7 +237,7 @@ Value* RBTree<Key, Value>::get(Node* root, Key key){
  * Recursively inserts the key-value pair into the tree and updates the root.
  */
 template <class Key, class Value>
-void RBTree<Key, Value>::put(Key key, Value val){
+void RBTree<Key, Value>::put(const Key& key, const Value& val){
     root_ = put(root_, key, val);
     root_->color = BLACK;
 }
@@ -331,7 +331,8 @@ typename RBTree<Key, Value>::Node* RBTree<Key, Value>::rotate_right(Node* node){
  * and then balances the tree.
  */
 template <class Key, class Value>
-typename RBTree<Key, Value>::Node* RBTree<Key, Value>::put(Node* root, Key key, Value val){
+typename RBTree<Key, Value>::Node* RBTree<Key, Value>::
+    put(Node* root, const Key& key, const Value& val){
     if (!root){
         return new Node(key, val, 1, RED);
     }
@@ -402,7 +403,7 @@ public:
         }
     }
 
-    Iterator(RBTree<Key, Value>& tree, Key key) : tree_(tree) {
+    Iterator(RBTree<Key, Value>& tree, const Key& key) : tree_(tree) {
         iter_ = tree.root_;
         while (iter_ && iter_->key != key){
             if (iter_->key > key){
