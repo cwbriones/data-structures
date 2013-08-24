@@ -71,9 +71,6 @@ public:
     }
     size_t size() const;
 
-    // template <class K, class V>
-    // friend std::ostream& operator<<(std::ostream& os, HashMap<K,V>& map);
-
     class Iterator;
     Iterator begin() const;
     Iterator end() const;
@@ -87,20 +84,6 @@ private:
     Hash<Key> hashcode;
     std::vector< Pair<Key, Value>* > items_;
 };
-
-// template <class Key, class Value>
-// std::ostream& operator<<(std::ostream& os, HashMap<Key, Value>& map){
-//     os << "{ ";
-//     int i = 0;
-//     for (auto iter = map.begin(); iter != map.end(); iter++, i++){
-//        os << (*iter).first << ": " << (*iter).second;
-//        if (i < map.size_){
-//            os << ", ";
-//        }
-//     }
-//     os << "}";
-//     return os;
-// }
 
 template <class Key, class Value>
 HashMap<Key, Value>::HashMap() : items_(tableSize_, nullptr) {}
@@ -175,6 +158,36 @@ bool HashMap<Key, Value>::contains(const Key& key) const {
     return false;
 }
 
+/*
+ * Removes a key-value pair from the HashMap. May possibly trigger a rehash.
+ */
+template <class Key, class Value>
+void HashMap<Key, Value>::remove(const Key& key) {
+    // Search for item and delete it.
+    if (!contains(key)){
+        return;
+    }
+    int i = hashcode(key);
+    while (items_[i]->first != key){
+        i = (i + 1) % tableSize_;
+    }
+    // Removal
+    delete items_[i];
+    items_[i] = nullptr;
+    // Rehashing
+    while (items_[i]){
+        auto redoItem = items_[i];
+        items_[i] = nullptr;
+        size_--;
+        put(redoItem[i]->first, redoItem[i]->second);
+        i = (i + 1) % tableSize_;
+        delete redoItem;
+    }
+    size_--;
+    // Possibly add a trigger to a rehash to a smaller table
+    return;
+}
+
 template <class Key, class Value>
 inline size_t HashMap<Key, Value>::size() const {
     return size_;
@@ -189,7 +202,6 @@ void HashMap<Key, Value>::resize(int newSize){
     std::vector<Pair<Key, Value>*> old = items_;
 
     // Reset
-    items_.clear();
     items_.resize(newSize);
     for (int i = 0; i < newSize; i++){
         items_[i] = nullptr;
