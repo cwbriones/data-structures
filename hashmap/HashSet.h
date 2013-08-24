@@ -57,14 +57,14 @@ public:
     Iterator begin() const;
     Iterator end() const;
 private:
-    int size_ = 0; // Number of key-value pairs
+    int size_ = 0; // Number of items
     int tableSize_ = 41; // size of linear-probing table
 
     float maxLoad_ = 0.25;
     void resize(int newSize);
     
     Hash<Key> hashcode;
-    std::vector<Key* > items_;
+    std::vector<Key*> items_;
 };
 
 template <class Key>
@@ -124,7 +124,7 @@ bool HashSet<Key>::contains(const Key& key) const {
 }
 
 /*
- * Removes a key-value pair from the HashSet. May possibly trigger a rehash.
+ * Removes a key from the HashSet. May possibly trigger a rehash.
  */
 template <class Key>
 void HashSet<Key>::remove(const Key& key) {
@@ -159,7 +159,7 @@ inline size_t HashSet<Key>::size() const {
 }
 
 /** 
- * Resizes the HashSet and rehashes all of the key-value pairs into new
+ * Resizes the HashSet and rehashes all of the keys into new
  * locations.
  */
 template <class Key>

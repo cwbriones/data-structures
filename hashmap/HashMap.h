@@ -24,9 +24,10 @@
 #define HASH_MAP_H_
 
 #include <vector>
-#include <iostream>
 #include <string>
 #include <functional>
+
+#include <initializer_list>
 
 #include "Hash.h"
 
@@ -52,9 +53,11 @@ template <typename Key, typename Value>
 class HashMap {
 public:
     HashMap();
+    HashMap(std::initializer_list<Pair<const Key&, const Value&> > list);
     ~HashMap();
 
     void put(const Key& key, const Value& value);
+    void put(Pair<const Key&, const Value&> pair);
     Value& get(const Key& key);
     void remove(const Key& key);
 
@@ -87,6 +90,13 @@ private:
 
 template <class Key, class Value>
 HashMap<Key, Value>::HashMap() : items_(tableSize_, nullptr) {}
+
+template <class Key, class Value>
+HashMap<Key, Value>::HashMap(std::initializer_list<Pair<const Key&, const Value&> > list) : HashMap() {
+    for (auto& x : list){
+        put(x.first, x.second);
+    }
+}
 
 template <class Key, class Value>
 HashMap<Key, Value>::~HashMap(){
@@ -122,6 +132,14 @@ void HashMap<Key, Value>::put(const Key& key, const Value& value){
     items_[i]->first = key;
     items_[i]->second = value;
     size_++;
+}
+
+/**
+ * Overloaded method for inserting pairs.
+ */
+template <class Key, class Value>
+void HashMap<Key, Value>::put(Pair<const Key&, const Value&> pair){
+    put(pair.first, pair.second);
 }
 
 /** 

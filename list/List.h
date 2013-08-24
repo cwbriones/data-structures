@@ -20,8 +20,8 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MY_LIST_H
-#define MY_LIST_H
+#ifndef LIST_H_
+#define LIST_H_
 
 #include <cstdlib>
 
@@ -38,9 +38,14 @@ public:
     void prepend(const T& item);
     void reverse();
 
+    bool empty();
+
     class Iterator;
     Iterator begin();
     Iterator end();
+
+    Iterator remove(Iterator position);
+    Iterator remove_range(Iterator start, Iterator end);
 private:
     struct Node {
         Node* next = nullptr;
@@ -68,6 +73,11 @@ List<T>::~List(){
 }
 
 template <class T>
+bool List<T>::empty(){
+    return size_ == 0;
+}
+
+template <class T>
 void swap(T& a, T& b){
     T tmp = a;
     a = b;
@@ -91,6 +101,93 @@ void List<T>::prepend(const T& item){
         tail_ = new_;
     }
     size_++;
+}
+
+/**
+ * Removes the element at the specified Iterator and returns
+ * a new Iterator pointing to the element just after the one
+ * erased.
+ */
+template <class T>
+typename List<T>::Iterator List<T>::remove(Iterator position){
+    if (position == end() || size_ == 0){
+        return end();
+    }
+
+    Node* newiter_ = nullptr;
+    if (position.iter_ == this->head_){
+        head_ = head_->next;
+        head_-> prev = nullptr;
+
+        delete position.iter_;
+        position.iter_ = nullptr;
+
+        newiter_ = head_;
+    }
+    else if (position.iter_ == this->tail_){
+        tail_ = tail_->prev;
+        tail_->next = nullptr;
+
+        delete position.iter_;
+        position.iter_ = nullptr;
+    }
+    else {
+        Node* first = position.iter_->prev;
+        Node* second = position.iter_->next;
+
+        // Skip over the node
+        first->next = second;
+        second->prev = first;
+
+        delete position.iter_;
+        position.iter_ = nullptr;
+
+        newiter_ = second;
+    }
+    size_--;
+    return Iterator(this, newiter_);
+}
+
+/**
+ * Removes the range [start, end) from the list and returns the iterator pointing
+ * to end. 
+ */
+template <class T>
+typename List<T>::Iterator List<T>::remove_range(Iterator start, Iterator end){
+    // Skip over all of the elements in the range
+    if (start.iter_ != head_){
+        Node* first = start.iter_->prev;
+        Node* second = end.iter_;
+
+        first->next = second;
+        if (second){
+            // tail the same
+            second->prev = first;
+        } else {
+            // tail changed
+            tail_ = first;
+        }
+    }
+    else if (end != this->end()){
+
+        // Move up the head since start is the head
+        // Chop off the prev pointer
+        head_ = end.iter_;
+        head_->prev = nullptr;
+    }
+    else {   
+        // Erase the entire list
+        head_ = nullptr;
+        tail_ = nullptr;
+    }
+    
+    // Delete elements in the range
+    for (auto i = start; i != end; i++){
+        delete start.iter_;
+        size_--;
+    }
+
+    return end;
 }
 
 /**
@@ -151,11 +248,17 @@ template <class T>
 class List<T>::Iterator {
 public:
     Iterator(List* list, Node* iter) : list_(list), iter_(iter) {}
+    Iterator operator+(int diff){
+        for (int i = 0; i < diff; i++){
+            ++(*this);
+        }
+        return (*this);
+    }
     Iterator operator++(){ 
         if (iter_){
             iter_ = iter_->next;
         }
-        return *this;
+        return (*this);
     }
     Iterator operator++(int){
         Iterator old(*this);
@@ -185,6 +288,8 @@ public:
 private:
     List* list_;
     Node* iter_ = nullptr;
+
+    friend class List<T>;
 };
 
-#endif //MY_LIST_H
+#endif // LIST_H_

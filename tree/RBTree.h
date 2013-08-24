@@ -1,5 +1,27 @@
-#ifndef RBTREE_H
-#define RBTREE_H
+/*
+ * Copyright (C) 2013 Christian Briones
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included 
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef RBTREE_H_
+#define RBTREE_H_
 
 #include <iostream>
 #include <initializer_list>
@@ -23,6 +45,9 @@ Pair<Key, Value> make_pair(Key first, Value second){
     return Pair<Key, Value>(first, second);
 }
 
+/**
+ * Implements a symbol table using a Red-Black tree.
+ */
 template <class Key, class Value>
 class RBTree {
 public:
@@ -76,6 +101,255 @@ struct RBTree<Key, Value>::Node {
     bool color = BLACK;
 };
 
+template <class Key, class Value>
+RBTree<Key, Value>::RBTree(){}
+
+template <class Key, class Value>
+RBTree<Key, Value>::RBTree(std::initializer_list<Pair<Key,Value> > list){
+    for (auto& x : list){
+        put(x.first, x.second);
+    }
+}
+
+template <class Key, class Value>
+RBTree<Key, Value>::~RBTree(){
+    clear();
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::floor(Key key){
+    Node* item = get(root_, key);
+    if (item){
+        return Iterator(*this, max(item->left));
+    }
+    return end();
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::ceiling(Key key){
+    Node* item = get(root_, key);
+    if (item){
+        return Iterator(*this, min(item->right));
+    }
+    return end();
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::min(){
+    return Iterator(*this);
+}
+
+template <class Key, class Value>
+typename RBTree<Key,Value>::Iterator RBTree<Key, Value>::max(){
+    auto max_n = max(root_);
+
+    return Iterator(*this, max_n);
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Node* RBTree<Key, Value>::min(Node* root){
+    if (root->left){
+        return min(root->left);
+    } else {
+        return root;
+    }
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Node* RBTree<Key, Value>::max(Node* root){
+    while (root->right){
+        root = root->right;
+    }
+    return root;
+}
+
+/**
+ * Destroys all the nodes in the tree.
+ */
+template <class Key, class Value>
+void RBTree<Key, Value>::clear(){
+    clear_tree(root_);
+    root_ = nullptr;
+}
+
+/**
+ * Destroys the subtree at the given root.
+ */
+template <class Key, class Value>
+void RBTree<Key, Value>::clear_tree(Node* root){
+    if (!root){
+        return;
+    } else {
+        clear_tree(root->left);
+        clear_tree(root->right);
+    }
+    delete root;
+
+    return;
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::begin(){
+    return Iterator(*this);
+}
+
+template <class Key, class Value>
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::end(){
+    return Iterator(*this, nullptr);
+}
+
+/**
+ * Recursively searches for the value at the key in the tree.
+ * Returns an iterator to the node.
+ *
+ * TODO: This behaivior shuold correspond to RBTree::find(Key& key) while
+ * RBTree::get(Key& key) should behave like in the HashMap and create a node
+ * if it already isn't in the tree, returning a reference.
+ */
+template <class Key, class Value>
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::get(Key key){
+    return Iterator(*this, key);
+}
+
+/**
+ * Recursively searches for the value at key in the subtree with the given root.
+ * Returns a pointer to the value if it is found, otherwise nullptr.
+ */
+template <class Key, class Value>
+Value* RBTree<Key, Value>::get(Node* root, Key key){
+    if (!root){
+        return nullptr;
+    }
+    
+    if (key < root->key){
+        return get(root->left, key);
+    }
+    else if (key > root->key){
+        return get(root->right, key);
+    }
+    else {
+        return (root->key == key) ? &root->val : nullptr;
+    }
+}
+
+/**
+ * Recursively inserts the key-value pair into the tree and updates the root.
+ */
+template <class Key, class Value>
+void RBTree<Key, Value>::put(Key key, Value val){
+    root_ = put(root_, key, val);
+    root_->color = BLACK;
+}
+
+/**
+ * Returns the size of the subtree rooted at the given node.
+ */
+template <class Key, class Value>
+int RBTree<Key, Value>::size(Node* node){
+    if (!node){
+        return 0;
+    }
+    return node->size;
+}
+
+template <class Key, class Value>
+bool RBTree<Key, Value>::is_red(Node* node){
+    return (node && node->color == RED);
+}
+
+/**
+ * Changes the color of the node.
+ */
+template <class Key, class Value>
+void RBTree<Key, Value>::flip_colors(Node* node){
+    node->left->color = BLACK;
+    node->right->color = BLACK;
+
+    node->color = RED;
+}
+
+/**
+ * "Rotates" a node counter-clockwise with respect to its parent and sibling.
+ */
+template <class Key, class Value>
+typename RBTree<Key, Value>::Node* RBTree<Key, Value>::rotate_left(Node* node){
+    Node* other = node->right;
+    node->right = other->left;
+    other->left = node;
+
+    other->color = node->color;
+    node->color = RED;
+
+    other->size = node->size;
+    node->size = 1 + size(node->left) + size(node->right);
+
+    return other;
+}
+
+/**
+ * "Rotates" a node clockwise with respect to its children.
+ */
+template <class Key, class Value>
+typename RBTree<Key, Value>::Node* RBTree<Key, Value>::rotate_right(Node* node){
+    Node* other = node->left;
+    node->left = other->right;
+    other->right = node;
+
+    other->color = node->color;
+    node->color = RED;
+
+    other->size = node->size;
+    node->size = 1 + size(node->left) + size(node->right);
+
+    return other;
+}
+
+/**
+ * Recursively inserts a key-value pair into the subtree at the given root,
+ * and then balances the tree.
+ */
+template <class Key, class Value>
+typename RBTree<Key, Value>::Node* RBTree<Key, Value>::put(Node* root, Key key, Value val){
+    if (!root){
+        return new Node(key, val, 1, RED);
+    }
+    // Insert the node as usual
+    if (key < root->key){
+        root->left = put(root->left, key, val);
+    }
+    else if (key > root->key){
+        root->right = put(root->right, key, val);
+    }
+    else {
+        root->val = val;
+    }
+
+    // Balance the tree
+    if (is_red(root->right) && !is_red(root->left)){
+        root = rotate_left(root);
+    }
+    if (is_red(root->left) && is_red(root->left->left)){
+        root = rotate_right(root);
+    }
+    if (is_red(root->left) && is_red(root->right)){
+        flip_colors(root);
+    }
+    // Update size
+    root->size = 1 + size(root->left) + size(root->right);
+
+    return root;
+}
+
+/**
+ * An Iterator class for accessing the elements
+ * of the RBTree in increasing order.
+ *
+ * It is the responsibility of the client to no longer use
+ * an iterator after the Tree has been destroyed.
+ *
+ * Dereferencing an iterator that points to the end of the
+ * container results in undefined behaivour.
+ */
 template <class Key, class Value>
 class RBTree<Key, Value>::Iterator {
 public:
@@ -164,207 +438,4 @@ private:
     bool check_right = true;
 };
 
-template <class Key, class Value>
-RBTree<Key, Value>::RBTree(){}
-
-template <class Key, class Value>
-RBTree<Key, Value>::RBTree(std::initializer_list<Pair<Key,Value> > list){
-    for (auto& x : list){
-        put(x.first, x.second);
-    }
-}
-
-template <class Key, class Value>
-RBTree<Key, Value>::~RBTree(){
-    clear();
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::floor(Key key){
-    Node* item = get(root_, key);
-    if (item){
-        return Iterator(*this, max(item->left));
-    }
-    return end();
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::ceiling(Key key){
-    Node* item = get(root_, key);
-    if (item){
-        return Iterator(*this, min(item->right));
-    }
-    return end();
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::min(){
-    return Iterator(*this);
-}
-
-template <class Key, class Value>
-typename RBTree<Key,Value>::Iterator RBTree<Key, Value>::max(){
-    auto max_n = max(root_);
-
-    return Iterator(*this, max_n);
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Node* RBTree<Key, Value>::min(Node* root){
-    if (root->left){
-        return min(root->left);
-    } else {
-        return root;
-    }
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Node* RBTree<Key, Value>::max(Node* root){
-    while (root->right){
-        root = root->right;
-    }
-    return root;
-}
-
-template <class Key, class Value>
-void RBTree<Key, Value>::clear(){
-    clear_tree(root_);
-    root_ = nullptr;
-}
-
-template <class Key, class Value>
-void RBTree<Key, Value>::clear_tree(Node* root){
-    if (!root){
-        return;
-    } else {
-        clear_tree(root->left);
-        clear_tree(root->right);
-    }
-    delete root;
-
-    return;
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::begin(){
-    return Iterator(*this);
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::end(){
-    return Iterator(*this, nullptr);
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::get(Key key){
-    return Iterator(*this, key);
-}
-
-template <class Key, class Value>
-Value* RBTree<Key, Value>::get(Node* root, Key key){
-    if (!root){
-        return nullptr;
-    }
-    
-    if (key < root->key){
-        return get(root->left, key);
-    }
-    else if (key > root->key){
-        return get(root->right, key);
-    }
-    else {
-        return (root->key == key) ? &root->val : nullptr;
-    }
-}
-
-template <class Key, class Value>
-void RBTree<Key, Value>::put(Key key, Value val){
-    root_ = put(root_, key, val);
-    root_->color = BLACK;
-}
-
-template <class Key, class Value>
-int RBTree<Key, Value>::size(Node* node){
-    if (!node){
-        return 0;
-    }
-    return node->size;
-}
-
-
-template <class Key, class Value>
-bool RBTree<Key, Value>::is_red(Node* node){
-    return (node && node->color == RED);
-}
-
-template <class Key, class Value>
-void RBTree<Key, Value>::flip_colors(Node* node){
-    node->left->color = BLACK;
-    node->right->color = BLACK;
-
-    node->color = RED;
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Node* RBTree<Key, Value>::rotate_left(Node* node){
-    Node* other = node->right;
-    node->right = other->left;
-    other->left = node;
-
-    other->color = node->color;
-    node->color = RED;
-
-    other->size = node->size;
-    node->size = 1 + size(node->left) + size(node->right);
-
-    return other;
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Node* RBTree<Key, Value>::rotate_right(Node* node){
-    Node* other = node->left;
-    node->left = other->right;
-    other->right = node;
-
-    other->color = node->color;
-    node->color = RED;
-
-    other->size = node->size;
-    node->size = 1 + size(node->left) + size(node->right);
-
-    return other;
-}
-
-template <class Key, class Value>
-typename RBTree<Key, Value>::Node* RBTree<Key, Value>::put(Node* root, Key key, Value val){
-    if (!root){
-        return new Node(key, val, 1, RED);
-    }
-    // Insert the node as usual
-    if (key < root->key){
-        root->left = put(root->left, key, val);
-    }
-    else if (key > root->key){
-        root->right = put(root->right, key, val);
-    }
-    else {
-        root->val = val;
-    }
-
-    // Balance the tree
-    if (is_red(root->right) && !is_red(root->left)){
-        root = rotate_left(root);
-    }
-    if (is_red(root->left) && is_red(root->left->left)){
-        root = rotate_right(root);
-    }
-    if (is_red(root->left) && is_red(root->right)){
-        flip_colors(root);
-    }
-    // Update size
-    root->size = 1 + size(root->left) + size(root->right);
-
-    return root;
-}
-
-#endif
+#endif // RB_TREE_H_
