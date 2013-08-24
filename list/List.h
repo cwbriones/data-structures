@@ -1,14 +1,29 @@
+/*
+ * Copyright (C) 2013 Christian Briones
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included 
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 #ifndef MY_LIST_H
 #define MY_LIST_H
 
 #include <cstdlib>
-
-template <class T>
-struct Node {
-    Node* next = nullptr;
-    Node* prev = nullptr;
-    T data;
-};
 
 /**
  * A generic doubly-linked List container class.
@@ -19,16 +34,22 @@ public:
     List();
     ~List();
 
-    void append(T item);
-    void prepend(T item);
+    void append(const T& item);
+    void prepend(const T& item);
     void reverse();
 
     class Iterator;
     Iterator begin();
     Iterator end();
 private:
-    Node<T>* head_ = nullptr;
-    Node<T>* tail_ = nullptr;
+    struct Node {
+        Node* next = nullptr;
+        Node* prev = nullptr;
+        T data;
+    };
+
+    Node* head_ = nullptr;
+    Node* tail_ = nullptr;
     size_t size_ = 0;
 };
 
@@ -57,8 +78,8 @@ void swap(T& a, T& b){
  * Adds an item onto the head of the List.
  */
 template <class T>
-void List<T>::prepend(T item){
-    Node<T>* new_ = new Node<T>();
+void List<T>::prepend(const T& item){
+    Node* new_ = new Node();
     new_->data = item;
 
     if (size_ > 0){
@@ -76,8 +97,8 @@ void List<T>::prepend(T item){
  * Adds an item onto the tail of the List.
  */
 template <class T>
-void List<T>::append(T item){
-    Node<T>* new_ = new Node<T>();
+void List<T>::append(const T& item){
+    Node* new_ = new Node();
     new_->data = item;
 
     if(size_ > 0){
@@ -99,7 +120,7 @@ void List<T>::append(T item){
  */
 template <class T>
 void List<T>::reverse(){
-    Node<T>* node = head_;
+    Node* node = head_;
     while (node){
         swap(node->next, node->prev);
         node = node->prev;
@@ -129,7 +150,7 @@ typename List<T>::Iterator List<T>::end(){
 template <class T>
 class List<T>::Iterator {
 public:
-    Iterator(List* list, Node<T>* iter) : list_(list), iter_(iter) {}
+    Iterator(List* list, Node* iter) : list_(list), iter_(iter) {}
     Iterator operator++(){ 
         if (iter_){
             iter_ = iter_->next;
@@ -163,7 +184,7 @@ public:
     }
 private:
     List* list_;
-    Node<T>* iter_ = nullptr;
+    Node* iter_ = nullptr;
 };
 
 #endif //MY_LIST_H
