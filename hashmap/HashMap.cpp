@@ -5,10 +5,10 @@
 
 int main(int argc, const char *argv[])
 {
-    HashMap<std::string, int> map;
-    map.put("Doggy", 15);
-    if (map.contains("Doggy")){
-        std::cout << map.get("Doggy") << std::endl;
+    HashMap<std::string, int> map = { {"Doggy", 15}, {"Cat", 10}, {"Frog", 20} };
+
+    for (auto iter = map.begin(); iter != map.end(); iter++){
+        std::cout << (*iter).second << std::endl;
     }
 
     return 0;
