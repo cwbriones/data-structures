@@ -58,6 +58,7 @@ public:
 
     void put(Key key, Value val);
     Iterator get(Key key);
+    bool contains(const Key& key) const;
 
     void clear();
 
@@ -239,6 +240,27 @@ template <class Key, class Value>
 void RBTree<Key, Value>::put(Key key, Value val){
     root_ = put(root_, key, val);
     root_->color = BLACK;
+}
+
+/**
+ * Returns true if key is contained within the tree.
+ */
+template <class Key, class Value>
+bool RBTree<Key, Value>::contains(const Key& key) const {
+    // Search for the key
+    Node* p = root_;
+    while (p){
+        if (p->key > key){
+            p = p->left;
+        } 
+        else if (p->key < key){
+            p = p->right;
+        }
+        else {
+            return (p->key == key);
+        }
+    }
+    return false;
 }
 
 /**
