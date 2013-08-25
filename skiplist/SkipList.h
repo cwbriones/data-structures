@@ -25,12 +25,13 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <iostream>
 
 /**
  * Returns a number evenly distributed over the interval [0, 1)
  */
 float frand(){
-    return (float) rand() / RAND_MAX;
+    return static_cast<float>(rand()) / RAND_MAX;
 }
 
 template <class Type>
@@ -42,6 +43,8 @@ public:
     void insert(const Type& item);
     bool contains(const Type& item) const;
 
+    int size();
+
     class Iterator;
     Iterator begin();
     Iterator end();
@@ -49,23 +52,26 @@ private:
     int random_level();
 
     class Node;
-    Node* head_ = nullptr;
+    Node head_;
+
     int size_ = 0;
 
-    static const int MAX_LEVEL = 6;
+    static const int MAX_LEVEL = 4;
     static constexpr float LEVEL_DIST = 0.5;
 };
 
 template <class Type>
 class SkipList<Type>::Node {
 public:
-    Node(int height, Type data) : height(height), data(data) {
+    Node(int height) : height(height){
         next = new Node * [height];
         for (int i = 0; i < height; i++){
             next[i] = nullptr;
         }
     }
-
+    Node(int height, const Type& data) : Node(height) {
+        this->data = data;
+    }
     ~Node(){
         delete next;
     }
@@ -73,30 +79,44 @@ private:
     Node** next;
     const int height;
     Type data;
+
+    friend class SkipList<Type>;
 };
 
 /*
  * Returns the number of levels in a node over a geometric distribution
+ * (i.e in the range [1, MAX_LEVEL]
  */
 template <class Type>
 int SkipList<Type>::random_level(){
-    int lvl = static_cast<int>(log( frand() / (1.0 - LEVEL_DIST)));
-    return lvl > MAX_LEVEL ? MAX_LEVEL : lvl;
+    int lvl = 1;
+
+    while (true){
+        if (lvl == MAX_LEVEL || frand() >= LEVEL_DIST){
+            break;
+        } else {
+            lvl++;
+        }
+    }
+
+    return lvl;
 }
 
 /**
  * SkipList Constructor
  */
 template <class Type>
-SkipList<Type>::SkipList(){
-}
+SkipList<Type>::SkipList() : head_(MAX_LEVEL) {}
 
 /**
  * SkipList Destructor
  */
 template <class Type>
-SkipList<Type>::~SkipList(){
-    delete head_;
+SkipList<Type>::~SkipList(){}
+
+template <class Type>
+inline int SkipList<Type>::size(){
+    return size_;
 }
 
 /**
@@ -104,20 +124,29 @@ SkipList<Type>::~SkipList(){
  */
 template <class Type>
 void SkipList<Type>::insert(const Type& item){
-    if (!head_){
-        head_ = new Node(MAX_LEVEL, item);
-        return;
-    }
 
-    Node* p = head_;
-    for (int i = MAX_LEVEL; i >= 0; i--){
-        while (p->next[i] && p->next[i]->value < item){
+    int levels = random_level();
+    Node* new_node = new Node(levels, item); 
+
+    Node* p = &head_;
+    Node* prev[MAX_LEVEL];
+
+    for (int i = MAX_LEVEL - 1; i >= 0; i--){
+        while (p->next[i] && p->next[i]->data < item){
             p = p->next[i];
         }
+        // Save all of the pointers in the prev lists
+        prev[i] = p;
     }
-    // P now points to a spot for our element
-    p->next[0] = new Node( random_level(), item);
+
     // Connect it into each list with the same level
+    for (int i = 0; i < levels; i++){
+        Node* after = prev[i]->next[i];
+
+        prev[i]->next[i] = new_node;
+        new_node->next[i] = after;
+    }
+
     size_++;
 }
 
@@ -140,6 +169,15 @@ bool SkipList<Type>::contains(const Type& item) const {
     return (p && p->value == item);
 }
 
+template <class Type>
+typename SkipList<Type>::Iterator SkipList<Type>::begin(){
+    return Iterator(*this);
+}
+
+template <class Type>
+typename SkipList<Type>::Iterator SkipList<Type>::end(){
+    return Iterator(*this, nullptr);
+}
 /**
  * Iterator class for traversing the SkipList
  */
@@ -147,7 +185,13 @@ template <class Type>
 class SkipList<Type>::Iterator {
 public:
     Iterator(const SkipList<Type>& list){
-        iter_ = list.head;
+        iter_ = list.head_.next[0];
+    }
+    Iterator(const SkipList<Type>& list, Node* start){
+        iter_ = start;
+        if (iter_ == &list.head_){
+            iter_ = list.head_.next[0];
+        }
     }
     Iterator operator++(){
         if (iter_){
