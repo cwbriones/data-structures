@@ -1,0 +1,11 @@
+This project contains implementations of several standard data-structures. Not all are complete or optimized.
+
+This includes:
+    Binary Tree (Red-Black)
+    Bloom Filter
+    Dynamic Arrays (Vector)
+    Doubly-Linked List
+    Heap
+    Hash Table (Implemented with Linear Probing)
+    SkipList
+    Trie
