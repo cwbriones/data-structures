@@ -42,8 +42,9 @@ public:
     
     void insert(const Type& item);
     bool contains(const Type& item) const;
-
     int size();
+
+    Type* at(int index);
 
     class Iterator;
     Iterator begin();
@@ -65,8 +66,10 @@ class SkipList<Type>::Node {
 public:
     Node(int height) : height(height){
         next = new Node * [height];
+        width = new size_t [height];
         for (int i = 0; i < height; i++){
             next[i] = nullptr;
+            width[i] = 0;
         }
     }
     Node(int height, const Type& data) : Node(height) {
@@ -74,11 +77,14 @@ public:
     }
     ~Node(){
         delete next;
+        delete width;
     }
 private:
     Node** next;
     const int height;
     Type data;
+
+    size_t* width;
 
     friend class SkipList<Type>;
 };
@@ -89,15 +95,9 @@ private:
  */
 template <class Type>
 int SkipList<Type>::random_level(){
-    int lvl = 1;
 
-    while (true){
-        if (lvl == MAX_LEVEL || frand() >= LEVEL_DIST){
-            break;
-        } else {
-            lvl++;
-        }
-    }
+    int lvl = 0;
+    while ((++lvl != MAX_LEVEL) && frand() < LEVEL_DIST){}
 
     return lvl;
 }
@@ -125,29 +125,68 @@ inline int SkipList<Type>::size(){
 template <class Type>
 void SkipList<Type>::insert(const Type& item){
 
+    int index = 0;
+
     int levels = random_level();
     Node* new_node = new Node(levels, item); 
 
     Node* p = &head_;
     Node* prev[MAX_LEVEL];
+    int prev_index[MAX_LEVEL];
 
     for (int i = MAX_LEVEL - 1; i >= 0; i--){
+        // TODO:
+        // Update the index of the nodes in previous as well
+        // then since you know the old index + the index of the
+        // newly inserted item you can update the widths of the
+        // links
         while (p->next[i] && p->next[i]->data < item){
+            index += p->width[i];
             p = p->next[i];
         }
         // Save all of the pointers in the prev lists
         prev[i] = p;
+        prev_index[i] = index;
     }
 
     // Connect it into each list with the same level
     for (int i = 0; i < levels; i++){
         Node* after = prev[i]->next[i];
-
         prev[i]->next[i] = new_node;
         new_node->next[i] = after;
+        
+        // Update link widths
+        int old_width = prev[i]->width[i];
+        // "Cut"
+        prev[i]->width[i] = index - prev_index[i] + 1;
+        // Give "excess" to new node
+        new_node->width[i] = old_width - prev[i]->width[i];
     }
 
     size_++;
+}
+
+template <class Type>
+Type* SkipList<Type>::at(int index){
+    if (index >= size_){
+        return nullptr;
+    }
+    Node* p = &head_;
+
+    int p_index = 0;
+    for (int i = MAX_LEVEL - 1; i >= 0; i--){
+        // Equivalent to 
+        // while ( non-null ptr AND as long as we don't overshoot )
+        // just like with item search
+        while (p_index + p->width[i] < size_ && p_index + p->width[i] < index){
+            p_index += p->width[i];
+            p = p->next[i];
+        }
+    }
+    if (p){
+        return &p->data;
+    }
+    return nullptr;
 }
 
 /**
@@ -159,14 +198,14 @@ bool SkipList<Type>::contains(const Type& item) const {
         return false;
     }
 
-    Node* p = head_;
+    const Node* p = &head_;
     for (int i = MAX_LEVEL; i >= 0; i--){
-        while (p->next[i] && p->next[i]->value < item){
+        while (p->next[i] && p->next[i]->data < item){
            p = p->next[i]; 
         }
     }
     p = p->next[0];
-    return (p && p->value == item);
+    return (p && p->data == item);
 }
 
 template <class Type>
@@ -178,6 +217,7 @@ template <class Type>
 typename SkipList<Type>::Iterator SkipList<Type>::end(){
     return Iterator(*this, nullptr);
 }
+
 /**
  * Iterator class for traversing the SkipList
  */

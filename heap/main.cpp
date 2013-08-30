@@ -1,19 +1,15 @@
 #include "Heap.h"
-#include "PriorityQueue.h"
 
 #include <iostream>
 #include <string>
 
 int main(int argc, const char *argv[])
 {
-    PriorityQueue<std::string> queue;
-    queue.enqueue("Dog", 11);
-    queue.enqueue("Cat", 5);
-    queue.enqueue("Parrot", 12);
-    queue.enqueue("Monkey", 1);
+    std::string items[] = {"Dog", "Cat", "Parrot", "Monkey"};
+    MinHeap<std::string> heap(items, sizeof(items)/sizeof(items[0]));
 
-    while (!queue.is_empty()){
-        std::cout << queue.dequeue() << std::endl;
+    while (!heap.is_empty()){
+        std::cout << heap.pop_min() << std::endl;
     }
 
     return 0;

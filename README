@@ -9,3 +9,7 @@ This includes:
     Hash Table (Implemented with Linear Probing)
     SkipList
     Trie
+
+All implementations are released under the X11 Public License (The MIT License)
+
+(C) 2013 Christian Briones
