@@ -1,10 +1,12 @@
-#include "unit_test.h"
+#define BOOST_TEST_MODULE SkipList test
+
+#include <boost/test/unit_test.hpp>
+
 #include "SkipList.h"
 #include <iostream>
 
 #include <cstdlib>
 #include <ctime>
-#include <cassert>
 
 #include <vector>
 #include <algorithm>
@@ -22,7 +24,7 @@ int rand_int(int a, int b){
     return a + x % n;
 }
 
-unittest {
+BOOST_AUTO_TEST_CASE(size_test) {
     const int TEST_SIZE = 50;
 
     std::vector<int> numbers(TEST_SIZE);
@@ -32,30 +34,16 @@ unittest {
     std::random_shuffle(numbers.begin(), numbers.end());
 
     SkipList<int> slist;
+    BOOST_CHECK(slist.empty());
+
     for (auto& x : numbers){
         slist.insert(x);
     }
-    assert(slist.size() == TEST_SIZE);
-
-    std::cout << "Size test passed." << std::endl;
+    BOOST_CHECK_EQUAL(slist.size(), TEST_SIZE);
+    BOOST_CHECK(!slist.empty());
 }
 
-unittest {
-    SkipList<int> items;
-
-    items.insert(10);
-    assert(items.contains(10));
-    items.insert(15);
-    assert(items.contains(15));
-    items.insert(7);
-    assert(items.contains(7));
-    items.insert(20);
-    assert(items.contains(20));
-
-    std::cout << "Sanity check contains test passed." << std::endl;
-}
-
-unittest {
+BOOST_AUTO_TEST_CASE(range_based_iteration_test) {
     const int TEST_SIZE = 50;
 
     std::vector<int> numbers(TEST_SIZE);
@@ -71,32 +59,58 @@ unittest {
 
     int j = 0;
     for (auto& i: slist){
-        assert(i == j++);
+        BOOST_CHECK_EQUAL(i, j++);
     }
-    std::cout << "Range-based iteration test passed." << std::endl;
 }
 
-unittest {
+BOOST_AUTO_TEST_CASE(contains_test1) {
     const int TEST_SIZE = 50;
 
-    std::vector<int> numbers(TEST_SIZE);
-    for (int i = 0; i < TEST_SIZE; i++){
-        numbers[i] = 2 * i + 1;
-    }
-    std::random_shuffle(numbers.begin(), numbers.end());
+    // std::vector<int> numbers(TEST_SIZE);
+    // for (int i = 0; i < TEST_SIZE; i++){
+    //     numbers[i] = 2 * i + 1;
+    // }
+    // std::random_shuffle(numbers.begin(), numbers.end());
 
-    SkipList<int> slist;
-    for (auto& x : numbers){
-        slist.insert(x);
-    }
+    // SkipList<int> slist;
+    // for (auto& x : numbers){
+    //     slist.insert(x);
+    // }
 
-    slist.insert(50);
-    assert(slist.contains(50));
-
-    std::cout << "Contains test passed." << std::endl;
+    // slist.insert(50);
+    // BOOST_CHECK(slist.contains(50));
 }
 
-unittest {
+BOOST_AUTO_TEST_CASE(contains_test2) {
+    // SkipList<int> slist;
+
+    // slist.insert(10);
+    // BOOST_CHECK(slist.contains(10));
+    // slist.insert(15);
+    // BOOST_CHECK(slist.contains(15));
+    // slist.insert(7);
+    // BOOST_CHECK(slist.contains(7));
+    // slist.insert(20);
+    // BOOST_CHECK(slist.contains(20));
+}
+
+BOOST_AUTO_TEST_CASE(index_address_test){
+    SkipList<int> slist;
+
+    const int TEST_SIZE = 20;
+
+    for (int i = 0; i < 20; i++){
+        slist.insert(i);
+    }
+
+    for (int i = 0; i < 20; i++){
+        if (slist.at(i)){
+            BOOST_CHECK_EQUAL(i, *slist.at(i));
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(is_sorted_test){
     const int TEST_SIZE = 50;
 
     std::vector<int> numbers(TEST_SIZE);
@@ -112,16 +126,7 @@ unittest {
 
     int last = -1;
     for (auto& c: slist){
-        assert(c > last);
+        BOOST_CHECK(c > last);
         last = c;
     }
-
-    std::cout << "Sorted test passed." << std::endl;
-}
-
-int main(int argc, const char *argv[])
-{
-    std::srand(static_cast<int>(time(0)));
-
-    return 0;
 }

@@ -44,6 +44,8 @@ public:
     bool contains(const Type& item) const;
     int size();
 
+    bool empty(){ return empty_; };
+
     Type* at(int index);
 
     class Iterator;
@@ -56,6 +58,7 @@ private:
     Node head_;
 
     int size_ = 0;
+    bool empty_ = true;
 
     static const int MAX_LEVEL = 4;
     static constexpr float LEVEL_DIST = 0.5;
@@ -135,6 +138,7 @@ int SkipList<Type>::random_level(){
  */
 template <class Type>
 void SkipList<Type>::insert(const Type& item){
+    empty_ = false;
 
     int index = 0;
 
@@ -205,7 +209,7 @@ Type* SkipList<Type>::at(int index){
  */
 template <class Type>
 bool SkipList<Type>::contains(const Type& item) const {
-    if (!size_){
+    if (empty_){
         return false;
     }
 
