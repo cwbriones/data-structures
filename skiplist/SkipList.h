@@ -28,7 +28,7 @@
 #include <iostream>
 
 /**
- * Returns a number evenly distributed over the interval [0, 1)
+ * Returns a number evenly distributed over the interval [0, 1]
  */
 float frand(){
     return static_cast<float>(rand()) / RAND_MAX;
@@ -76,8 +76,8 @@ public:
         this->data = data;
     }
     ~Node(){
-        delete next;
-        delete width;
+        delete[] next;
+        delete[] width;
     }
 private:
     Node** next;
@@ -88,6 +88,34 @@ private:
 
     friend class SkipList<Type>;
 };
+
+/**
+ * SkipList Constructor
+ */
+template <class Type>
+SkipList<Type>::SkipList() : head_(MAX_LEVEL) {}
+
+/**
+ * SkipList Destructor
+ */
+template <class Type>
+SkipList<Type>::~SkipList(){
+    // Delete all nodes in the list
+    
+    Node* ptr = head_.next[0];
+    
+    while(ptr){
+        Node* old = ptr;
+        ptr = ptr->next[0];
+
+        delete old;
+    }
+}
+
+template <class Type>
+inline int SkipList<Type>::size(){
+    return size_;
+}
 
 /*
  * Returns the number of levels in a node over a geometric distribution
@@ -100,23 +128,6 @@ int SkipList<Type>::random_level(){
     while ((++lvl != MAX_LEVEL) && frand() < LEVEL_DIST){}
 
     return lvl;
-}
-
-/**
- * SkipList Constructor
- */
-template <class Type>
-SkipList<Type>::SkipList() : head_(MAX_LEVEL) {}
-
-/**
- * SkipList Destructor
- */
-template <class Type>
-SkipList<Type>::~SkipList(){}
-
-template <class Type>
-inline int SkipList<Type>::size(){
-    return size_;
 }
 
 /**
@@ -176,9 +187,9 @@ Type* SkipList<Type>::at(int index){
     int p_index = 0;
     for (int i = MAX_LEVEL - 1; i >= 0; i--){
         // Equivalent to 
-        // while ( non-null ptr AND as long as we don't overshoot )
+        // while ( we don't overshoot )
         // just like with item search
-        while (p_index + p->width[i] < size_ && p_index + p->width[i] < index){
+        while (p_index + p->width[i] <= index){
             p_index += p->width[i];
             p = p->next[i];
         }
@@ -227,29 +238,35 @@ public:
     Iterator(const SkipList<Type>& list){
         iter_ = list.head_.next[0];
     }
+
     Iterator(const SkipList<Type>& list, Node* start){
         iter_ = start;
         if (iter_ == &list.head_){
             iter_ = list.head_.next[0];
         }
     }
+
     Iterator operator++(){
         if (iter_){
             iter_ = iter_->next[0];
         }
         return (*this);
     }
+
     Iterator operator++(int){
         Iterator old(*this);
         ++(*this);
         return old;
     }
+
     const Type& operator*(){
         return iter_->data;
     }
+
     bool operator==(const Iterator& other){
         return other.iter_ == iter_;
     }
+
     bool operator!=(const Iterator& other){
         return other.iter_ != iter_;
     }
