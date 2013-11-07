@@ -63,35 +63,23 @@ BOOST_AUTO_TEST_CASE(range_based_iteration_test) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(contains_test1) {
-    const int TEST_SIZE = 50;
+BOOST_AUTO_TEST_CASE(contains_test) {
+    const int TEST_SIZE = 10;
 
-    // std::vector<int> numbers(TEST_SIZE);
-    // for (int i = 0; i < TEST_SIZE; i++){
-    //     numbers[i] = 2 * i + 1;
-    // }
-    // std::random_shuffle(numbers.begin(), numbers.end());
+    std::vector<int> numbers(TEST_SIZE);
+    for (int i = 0; i < TEST_SIZE; i++){
+        numbers[i] = 2 * i + 1;
+    }
+    std::random_shuffle(numbers.begin(), numbers.end());
 
-    // SkipList<int> slist;
-    // for (auto& x : numbers){
-    //     slist.insert(x);
-    // }
+    SkipList<int> slist;
+    for (auto x : numbers){
+        slist.insert(x);
+    }
 
-    // slist.insert(50);
-    // BOOST_CHECK(slist.contains(50));
-}
-
-BOOST_AUTO_TEST_CASE(contains_test2) {
-    // SkipList<int> slist;
-
-    // slist.insert(10);
-    // BOOST_CHECK(slist.contains(10));
-    // slist.insert(15);
-    // BOOST_CHECK(slist.contains(15));
-    // slist.insert(7);
-    // BOOST_CHECK(slist.contains(7));
-    // slist.insert(20);
-    // BOOST_CHECK(slist.contains(20));
+    for (auto x : numbers){
+        BOOST_CHECK(slist.contains(x));
+    }
 }
 
 BOOST_AUTO_TEST_CASE(index_address_test){
@@ -99,15 +87,23 @@ BOOST_AUTO_TEST_CASE(index_address_test){
 
     const int TEST_SIZE = 20;
 
-    for (int i = 0; i < 20; i++){
+    for (int i = 0; i < TEST_SIZE; i++){
         slist.insert(i);
     }
 
-    for (int i = 0; i < 20; i++){
-        if (slist.at(i)){
-            BOOST_CHECK_EQUAL(i, *slist.at(i));
-        }
+    for (int i = 0; i < TEST_SIZE; i++){
+        BOOST_REQUIRE(slist.at(i));
+        BOOST_CHECK_EQUAL(i, *slist.at(i));
     }
+
+}
+
+BOOST_AUTO_TEST_CASE(index_out_of_range_test){
+    
+    SkipList<int> slist;
+
+    BOOST_CHECK_THROW(slist.at(-1), std::out_of_range);
+    BOOST_CHECK_THROW(slist.at(0), std::out_of_range);
 }
 
 BOOST_AUTO_TEST_CASE(is_sorted_test){

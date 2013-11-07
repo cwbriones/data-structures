@@ -138,8 +138,6 @@ int SkipList<Type>::random_level(){
  */
 template <class Type>
 void SkipList<Type>::insert(const Type& item){
-    empty_ = false;
-
     int index = 0;
 
     int levels = random_level();
@@ -178,13 +176,17 @@ void SkipList<Type>::insert(const Type& item){
         new_node->width[i] = old_width - prev[i]->width[i];
     }
 
-    size_++;
+    ++size_;
+    empty_ = false;
 }
+
+#include <stdexcept>
 
 template <class Type>
 Type* SkipList<Type>::at(int index){
-    if (index >= size_){
-        return nullptr;
+
+    if (index >= size_ || index < 0){
+        throw std::out_of_range("Index out of range [0, size) for skiplist ");
     }
     Node* p = &head_;
 
@@ -198,8 +200,8 @@ Type* SkipList<Type>::at(int index){
             p = p->next[i];
         }
     }
-    if (p){
-        return &p->data;
+    if (p->next[0]){
+        return &p->next[0]->data;
     }
     return nullptr;
 }
@@ -214,12 +216,12 @@ bool SkipList<Type>::contains(const Type& item) const {
     }
 
     const Node* p = &head_;
+
     for (int i = MAX_LEVEL; i >= 0; i--){
-        while (p->next[i] && p->next[i]->data < item){
+        while (p->next[i] && p->next[i]->data <= item){
            p = p->next[i]; 
         }
     }
-    p = p->next[0];
     return (p && p->data == item);
 }
 
