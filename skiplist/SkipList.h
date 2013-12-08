@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 /**
  * Returns a number evenly distributed over the interval [0, 1]
@@ -46,7 +47,7 @@ public:
 
     bool empty(){ return empty_; };
 
-    Type* at(int index);
+    Type& at(int index);
 
     class Iterator;
     Iterator begin();
@@ -180,14 +181,13 @@ void SkipList<Type>::insert(const Type& item){
     empty_ = false;
 }
 
-#include <stdexcept>
-
 template <class Type>
-Type* SkipList<Type>::at(int index){
+Type& SkipList<Type>::at(int index){
 
     if (index >= size_ || index < 0){
         throw std::out_of_range("Index out of range [0, size) for skiplist ");
     }
+
     Node* p = &head_;
 
     int p_index = 0;
@@ -200,10 +200,7 @@ Type* SkipList<Type>::at(int index){
             p = p->next[i];
         }
     }
-    if (p->next[0]){
-        return &p->next[0]->data;
-    }
-    return nullptr;
+    return p->next[0]->data;
 }
 
 /**

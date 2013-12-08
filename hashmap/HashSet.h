@@ -141,12 +141,12 @@ void HashSet<Key>::remove(const Key& key) {
     items_[i] = nullptr;
     // Rehashing
     while (items_[i]){
-        auto redoItem = items_[i];
+        auto redo_item = items_[i];
         items_[i] = nullptr;
         size_--;
-        put(*redoItem[i]->first);
+        put(*redo_item[i]->first);
         i = (i + 1) % tableSize_;
-        delete redoItem;
+        delete redo_item;
     }
     size_--;
     // Possibly add a trigger to a rehash to a smaller table

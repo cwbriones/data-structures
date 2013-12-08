@@ -92,8 +92,7 @@ BOOST_AUTO_TEST_CASE(index_address_test){
     }
 
     for (int i = 0; i < TEST_SIZE; i++){
-        BOOST_REQUIRE(slist.at(i));
-        BOOST_CHECK_EQUAL(i, *slist.at(i));
+        BOOST_CHECK_EQUAL(i, slist.at(i));
     }
 
 }

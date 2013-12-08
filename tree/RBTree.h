@@ -57,13 +57,15 @@ public:
     class Iterator;
 
     void put(const Key& key, const Value& val);
-    Iterator get(const Key& key);
+    Value& get(const Key& key);
     bool contains(const Key& key) const;
 
     void clear();
 
     Iterator floor(const Key& key);
     Iterator ceiling(const Key& key);
+
+    Iterator find(const Key& key);
 
     Iterator min();
     Iterator max();
@@ -208,8 +210,26 @@ typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::end(){
  * if it already isn't in the tree, returning a reference.
  */
 template <class Key, class Value>
-typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::get(const Key& key){
+typename RBTree<Key, Value>::Iterator RBTree<Key, Value>::find(const Key& key) {
     return Iterator(*this, key);
+}
+
+template <class Key, class Value>
+Value& RBTree<Key, Value>::get(const Key& key){
+    Node* iter = root_;
+
+    while (iter){
+        if (key < iter->key){
+            iter = iter->left;
+        }
+        else if (key > iter->key){
+            iter = iter->right;
+        }
+        else {
+            return iter->val;
+        }
+    }
+    this->put(root_, key);
 }
 
 /**
@@ -221,7 +241,6 @@ Value* RBTree<Key, Value>::get(Node* root, const Key& key){
     if (!root){
         return nullptr;
     }
-    
     if (key < root->key){
         return get(root->left, key);
     }
