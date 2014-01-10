@@ -1,0 +1,11 @@
+dynamic-array/array
+hashmap/hash
+hashmap/set
+heap/pq
+heap/test
+list/list
+skiplist/slist
+skiplist/test
+tree/tree
+tree/trie
+trie/trie
