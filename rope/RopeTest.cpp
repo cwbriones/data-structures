@@ -12,3 +12,10 @@ BOOST_AUTO_TEST_CASE(test_empty_rope) {
 BOOST_AUTO_TEST_CASE(test_rope_construction) {
     Rope rope("words words words");
 }
+
+BOOST_AUTO_TEST_CASE(test_rope_length) {
+    std::string str("words words words");
+    Rope rope(str);
+
+    BOOST_CHECK_EQUAL(str.size(), rope.size());
+}

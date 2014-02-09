@@ -10,13 +10,16 @@ public:
     Rope();
     Rope(const std::string& str);
     ~Rope();
-    
+
+    const size_t size() const;
 private:
     class Node {
     public:
         Node();
         Node(const std::string& str);
         ~Node();
+
+        const size_t weight() const { return weight_; }
     private:
         Node* left_;
         Node* right_;
