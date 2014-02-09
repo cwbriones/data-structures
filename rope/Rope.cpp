@@ -1,4 +1,18 @@
 #include "Rope.h"
+#include <cstdlib>
+
+/**
+ * Generates a random integer in
+ * the range [a, b]
+ */
+int rand_int(int a, int b){
+    int n = b - a + 1;
+
+    int x;
+    int max_limit = RAND_MAX - n;
+    while ((x = rand()) >= max_limit){}
+    return a + x % n;
+}
 
 /*
  * Rope public methods.

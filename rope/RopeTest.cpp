@@ -25,4 +25,7 @@ BOOST_AUTO_TEST_CASE(test_rope_to_str) {
     Rope rope(str);
 
     BOOST_CHECK_EQUAL(str, rope.to_str());
+
+    Rope rope2;
+    BOOST_CHECK_EQUAL(rope2.to_str(), "");
 }
