@@ -13,6 +13,8 @@ public:
 
     const size_t size() const;
     std::string to_str() const;
+
+    char at(size_t pos) const;
 private:
     class Node {
     public:
@@ -20,13 +22,19 @@ private:
         Node(const std::string& str);
         ~Node();
 
-        const size_t weight() ;
+        const size_t weight() const { 
+            if (!right_) {
+                return weight_; 
+            }
+            return weight_ + right_->weight_;
+        }
+        size_t update_weight();
         std::string str() const;
+        char at(size_t pos) const;
     private:
         Node* left_;
         Node* right_;
 
-        bool dirty_;
         size_t weight_;
         std::string data_;
 
