@@ -17,6 +17,13 @@ const size_t Rope::size() const {
     return 0;
 }
 
+std::string Rope::to_str() const {
+    if (head_) {
+        return head_->str();
+    }
+    return "";
+}
+
 /*
  * Rope private methods.
  */
@@ -32,4 +39,8 @@ Rope::Node::Node(const std::string& str) : left_(nullptr), right_(nullptr), data
 Rope::Node::~Node() {
     delete left_;
     delete right_;
+}
+
+std::string Rope::Node::str() const {
+    return data_;
 }

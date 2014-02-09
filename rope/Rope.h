@@ -12,6 +12,7 @@ public:
     ~Rope();
 
     const size_t size() const;
+    std::string to_str() const;
 private:
     class Node {
     public:
@@ -20,6 +21,7 @@ private:
         ~Node();
 
         const size_t weight() const { return weight_; }
+        std::string str() const;
     private:
         Node* left_;
         Node* right_;

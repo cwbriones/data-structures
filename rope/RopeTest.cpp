@@ -19,3 +19,10 @@ BOOST_AUTO_TEST_CASE(test_rope_length) {
 
     BOOST_CHECK_EQUAL(str.size(), rope.size());
 }
+
+BOOST_AUTO_TEST_CASE(test_rope_to_str) {
+    std::string str("this is a test of the rope.");
+    Rope rope(str);
+
+    BOOST_CHECK_EQUAL(str, rope.to_str());
+}
