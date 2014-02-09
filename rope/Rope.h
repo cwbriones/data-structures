@@ -20,14 +20,17 @@ private:
         Node(const std::string& str);
         ~Node();
 
-        const size_t weight() const { return weight_; }
+        const size_t weight() ;
         std::string str() const;
     private:
         Node* left_;
         Node* right_;
 
+        bool dirty_;
         size_t weight_;
         std::string data_;
+
+        const size_t MIN_STR_LENGTH = 6;
     };
 
     Node* head_;
