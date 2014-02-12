@@ -38,3 +38,9 @@ BOOST_AUTO_TEST_CASE(test_rope_indexing) {
         BOOST_CHECK_EQUAL(str[i], rope.at(i));
     }
 }
+
+BOOST_AUTO_TEST_CASE(test_rope_concat) {
+}
+
+BOOST_AUTO_TEST_CASE(test_rope_split) {
+}
