@@ -1,5 +1,6 @@
 #include "Rope.h"
 #include <cstdlib>
+#include <iostream>
 
 /**
  * Generates a random integer in
@@ -17,18 +18,22 @@ int rand_int(int a, int b){
 /*
  * Rope public methods.
  */
-
-Rope::Rope() : head_(nullptr) {}
-Rope::Rope(const std::string& str) : head_(new Rope::Node(str)) {}
-Rope::~Rope() {
-    delete head_;
+Rope::Rope() : head_(nullptr), size_(0) {}
+Rope::Rope(const std::string& str) : size_(str.size()) {
+    std::cout << "Creating rope from string: " << str << std::endl;
+    if (str.size() == 0) {
+        head_ = nullptr;
+    } else {
+        head_ = std::make_shared<const Node>(str);
+    }
 }
 
-const size_t Rope::size() const {
-    if (head_) {
-        return head_->weight();
-    }
-    return 0;
+Rope::Rope(const Rope& left, const Rope& right) : size_(left.size() + right.size()) {
+    head_ = std::make_shared<const Node>(left.head_, right.head_, left.size());
+}
+
+size_t Rope::size() const {
+    return size_;
 }
 
 std::string Rope::to_str() const {
@@ -42,44 +47,33 @@ char Rope::at(size_t pos) const {
     return head_->at(pos);
 }
 
+Rope&& concat(const Rope& other) {
+    return Rope(*this, other);
+}
+
 /*
  * Rope private methods.
  */
 
-Rope::Node::Node() : left_(nullptr), right_(nullptr), data_("") {
-    weight_ = 0;
-}
-
-Rope::Node::Node(const std::string& str) : left_(nullptr), right_(nullptr) {
+Rope::Node::Node() : left_(nullptr), right_(nullptr), data_(""), weight_(0) {}
+Rope::Node::Node(std::shared_ptr<const Node>& left, std::shared_ptr<const Node>& right, weight) :
+    weight_(weight),
+    data_(""),
+    left_(left),
+    right_(right) {}
+Rope::Node::Node(const std::string& str) {
     if (str.size() > MIN_STR_LENGTH) {
         // Split the string somewhere in the middle
-        int split_position = rand_int(0.25 * str.size(), 0.75 * str.size());
+        int split_position = str.size()/2;
         // Assign recursively
-        left_ = new Node(str.substr(0, split_position));
-        right_ = new Node(str.substr(split_position));
-        update_weight();
+        weight_ = split_position;
+        left_ = std::shared_ptr<const Node>(new Node(str.substr(0, split_position)));
+        right_ = std::shared_ptr<const Node>(new Node(str.substr(split_position)));
     } else {
         data_ = str;
+        left_ = nullptr;
+        right_ = nullptr;
         weight_ = str.size();
-    }
-}
-
-Rope::Node::~Node() {
-    delete left_;
-    delete right_;
-}
-
-size_t Rope::Node::update_weight() { 
-    if (!left_) {
-        weight_ = data_.size();
-    } else {
-        weight_ = left_->update_weight();
-    }
-
-    if (right_) {
-        return weight_ + right_->update_weight();
-    } else {
-        return weight_;
     }
 }
 

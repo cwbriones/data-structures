@@ -2,6 +2,7 @@
 #define BOOST_TEST_MODULE Rope test
 
 #include <boost/test/unit_test.hpp>
+#include <iostream>
 
 #include "Rope.h"
 
@@ -12,7 +13,7 @@ BOOST_AUTO_TEST_CASE(test_empty_rope) {
 BOOST_AUTO_TEST_CASE(test_rope_construction) {
     Rope rope("words words words");
 }
-
+// 
 BOOST_AUTO_TEST_CASE(test_rope_length) {
     std::string str("words words words");
     Rope rope(str);
@@ -39,8 +40,8 @@ BOOST_AUTO_TEST_CASE(test_rope_indexing) {
     }
 }
 
-BOOST_AUTO_TEST_CASE(test_rope_concat) {
-}
-
-BOOST_AUTO_TEST_CASE(test_rope_split) {
-}
+// BOOST_AUTO_TEST_CASE(test_rope_concat) {
+// }
+// 
+// BOOST_AUTO_TEST_CASE(test_rope_split) {
+// }
