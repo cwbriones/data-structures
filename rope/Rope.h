@@ -14,15 +14,14 @@ public:
     size_t size() const;
     std::string to_str() const;
     char at(size_t pos) const;
-
-    Rope&& concat(const Rope& other);
 private:
     class Node {
     public:
         Node();
         Node(const std::string& str);
-        Node(std::shared_ptr<Node> const& left, 
-             std::shared_ptr<Node> const& right, size_t weight);
+        Node(std::shared_ptr<const Node> const & left, 
+             std::shared_ptr<const Node> const & right, 
+             size_t weight);
         
         std::string str() const;
         char at(size_t pos) const;

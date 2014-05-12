@@ -40,8 +40,15 @@ BOOST_AUTO_TEST_CASE(test_rope_indexing) {
     }
 }
 
-// BOOST_AUTO_TEST_CASE(test_rope_concat) {
-// }
-// 
+BOOST_AUTO_TEST_CASE(test_rope_concat) {
+    Rope rope1("this is a test of");
+    Rope rope2(" concatenating ropes.");
+
+    Rope rope3(rope1, rope2);
+    BOOST_CHECK_EQUAL(
+            "this is a test of concatenating ropes.",
+            rope3.to_str());
+}
+
 // BOOST_AUTO_TEST_CASE(test_rope_split) {
 // }

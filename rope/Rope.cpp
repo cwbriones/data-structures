@@ -47,20 +47,21 @@ char Rope::at(size_t pos) const {
     return head_->at(pos);
 }
 
-Rope&& concat(const Rope& other) {
-    return Rope(*this, other);
-}
-
 /*
  * Rope private methods.
  */
 
 Rope::Node::Node() : left_(nullptr), right_(nullptr), data_(""), weight_(0) {}
-Rope::Node::Node(std::shared_ptr<const Node>& left, std::shared_ptr<const Node>& right, weight) :
+Rope::Node::Node(
+    std::shared_ptr<const Node> const & left, 
+    std::shared_ptr<const Node> const & right, 
+    size_t weight) :
+
     weight_(weight),
     data_(""),
     left_(left),
     right_(right) {}
+
 Rope::Node::Node(const std::string& str) {
     if (str.size() > MIN_STR_LENGTH) {
         // Split the string somewhere in the middle
